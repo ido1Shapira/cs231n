@@ -150,6 +150,7 @@ def simclr_loss_vectorized(out_left, out_right, tau, device='cuda'):
     Inputs and output are the same as in simclr_loss_naive.
     """
     N = out_left.shape[0]
+    loss = None
     
     # Concatenate out_left and out_right into a 2*N x D tensor.
     out = torch.cat([out_left, out_right], dim=0)  # [2*N, D]
@@ -163,16 +164,7 @@ def simclr_loss_vectorized(out_left, out_right, tau, device='cuda'):
     
     # Step 1: Use sim_matrix to compute the denominator value for all augmented samples.
     # Hint: Compute e^{sim / tau} and store into exponential, which should have shape 2N x 2N.
-    exponential = (sim_matrix / tau).exp().to(device)
     
-    # This binary mask zeros out terms where k=i.
-    mask = (torch.ones_like(exponential, device=device) - torch.eye(2 * N, device=device)).to(device).bool()
-    
-    # We apply the binary mask.
-    exponential = exponential.masked_select(mask).view(2 * N, -1)  # [2*N, 2*N-1]
-    
-    # Hint: Compute the denominator values for all augmented samples. This should be a 2N x 1 vector.
-    denom = exponential.sum(dim=1)
 
     # Step 2: Compute similarity between positive pairs.
     # You can do this in two ways: 
@@ -180,7 +172,6 @@ def simclr_loss_vectorized(out_left, out_right, tau, device='cuda'):
     # Option 2: Use sim_positive_pairs().
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    sim_pairs = sim_matrix[range(2*N), [*range(N, 2*N), *range(0, N)]]
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
@@ -188,12 +179,9 @@ def simclr_loss_vectorized(out_left, out_right, tau, device='cuda'):
     numerator = None
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    numerator = (sim_pairs / tau).exp().to(device)
-
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     
     # Step 4: Now that you have the numerator and denominator for all augmented samples, compute the total loss.
-    loss = -(numerator / denom).log().mean()
     
     ##############################################################################
     #                               END OF YOUR CODE                             #
