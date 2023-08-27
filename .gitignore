@@ -1,6 +1,7 @@
 # Env
 venv
 
+.vscode/
 # Python
 __pycache__
 .ipynb_checkpoints
